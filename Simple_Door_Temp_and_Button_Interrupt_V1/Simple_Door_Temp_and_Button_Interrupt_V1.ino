@@ -6,9 +6,6 @@ Open/Close door with temperature
 and
 Toggle button using Interrupt
 
-to solve..................
-currently:  trigger works but resets to high even thought sensor reads senting to low....
-
  ****************************************************/
 
 // Libraries
@@ -26,12 +23,12 @@ DHT dht1(4, DHT11); //blue sensor. On Amico board GPIO 4 is D2
 const int doorPin = 5; // Amico board GPIO 5 is D1
 const int buttonPin = 2;  //Amico board GPIO 2 is D4 **note: GPIO16 will not interrupt
 //Variable
-volatile int buttonState = 0;  //variable for reading pushbutton status
+volatile int buttonState = 0;  // variable set as volatile to be read outside of loop 
 volatile int reading;
 volatile int previous = HIGH;
 
 long wait = 0;
-long debounce = 500;
+long debounce = 500; // time to keep from false button reading
 
 /*************************** Sketch Code ************************************/
 
@@ -43,12 +40,12 @@ void setup() {
   // Configure pins for desired type
   pinMode (doorPin, OUTPUT);
   pinMode (buttonPin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(2), pin_ISR, CHANGE); //GPIO2
+  attachInterrupt(digitalPinToInterrupt(2), pin_ISR, CHANGE); // Set GPIO2 to monitor as interrupt
 
   // set connection speed
   Serial.begin(115200); 
   delay(10);
-  Serial.println(F("Serial Connection Established"));
+  Serial.println(F("Serial Connection Established"));  // Not printing yet?
   
 }//end-setup
 
@@ -58,27 +55,27 @@ void loop() {
   int doorTemp = (int)dht1.readTemperature(true); //True reads Fehrenheit temp 
   Serial.print(F("Current Temp: "));
   Serial.println(doorTemp);
-  Serial.println();
+  Serial.println();           // blank line
 
 /////////////////////////////////////////////
 //Set Door position open/closed based on temp
 /////////////////////////////////////////////
     if(doorTemp >= THRESHOLD_OPEN){
-      digitalWrite(doorPin, HIGH);//set pin to low
+      digitalWrite(doorPin, HIGH);//set pin to high
       Serial.println(F("Pin set High - close circuit"));
     } 
     else if(doorTemp <= THRESHOLD_CLOSE){
-      digitalWrite(doorPin, LOW);//High equals powered
+      digitalWrite(doorPin, LOW);//
       Serial.println(F("Pin set Low - open circuit"));
     } 
    //read actual pin setting high/low and print door position to screen 
-    if (digitalRead(doorPin) == 1){
+    if (digitalRead(doorPin) == 1){  // pin is equal to HIGH
       Serial.println(F("Door is OPEN"));
     }
-    else {
+    else {                           // else pin is LOW
        Serial.println(F("Door is currently CLOSED"));
     }
-    Serial.print(F("Actual Pin Reading = "));
+    Serial.print(F("Actual Pin Reading = ")); // display actual pin reading
     Serial.println(digitalRead(doorPin));
     Serial.println();
 
@@ -108,6 +105,6 @@ void pin_ISR(){
 
   digitalWrite(doorPin, buttonState); //set doorPin to toggled position
 
-  previous = reading;
+  previous = reading;  // set previous to current reading
  }
 
