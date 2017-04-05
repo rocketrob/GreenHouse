@@ -35,8 +35,8 @@
 #define AIO_KEY         "d4b0aa4ae08643938438a77f5a9015f9"
 
 //Variables
-#define THRESHOLD_OPEN  70 //Set door open temperature
-#define THRESHOLD_CLOSE 69 //Set door close temperature
+#define THRESHOLD_OPEN  76 //Set door open temperature
+#define THRESHOLD_CLOSE 75 //Set door close temperature
 
 // Configure DHT sensors 
     ///////////////////////////////////////////////////////////////
@@ -49,8 +49,11 @@
 DHT dht1(4, DHT11); //blue sensor. On Amico board GPIO 4 is D2
 //DHT dht2(2, DHT22); //white sensor
 
-//Configure PowerSwitch tail to an output pin
-const int door_pin = 5; // Amico board GPIO 5 is D1
+//Set Pin Locations
+const int doorPin = 5; // Amico board GPIO 5 is D1
+const int buttonPin = 2;  //Amico board GPIO 0 is D3 **not sure if this pin allows interupt??**
+//Variable
+volatile int buttonState = 0;  //variable for reading pushbutton status
 
 // Functions
 void connect();
@@ -82,8 +85,11 @@ void setup() {
   dht1.begin();
   //dht2.begin();
 
-  // Set door pin to output
-  pinMode (door_pin, OUTPUT);
+  // Configure pins for desired type
+  pinMode (doorPin, OUTPUT);
+  pinMode (buttonPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(0), pin_ISR, CHANGE);
+  
   // set upload speed
   Serial.begin(115200); 
   Serial.println(F("Adafruit IO Example")); // F stores this as FLASH memory instead of RAM
@@ -131,8 +137,8 @@ void loop() {
   int doorTemp = (int)dht1.readTemperature(true); //True reads Fehrenheit temp  
     //int doorHum = (int)dht1.readHumidity(); // not needed for door opener program
     //uncomment below if second sensor added
- // int humidity_data2 = (int)dht2.readHumidity();
- // int temperature_data2 = (int)dht2.readTemperature(true); //True reads Fehrenheit temp
+    // int humidity_data2 = (int)dht2.readHumidity();
+    // int temperature_data2 = (int)dht2.readTemperature(true); //True reads Fehrenheit temp
 
   // Publish data Sensor1
   if (! temp1.publish(doorTemp)) //if not published
@@ -180,8 +186,8 @@ void loop() {
       //message to door
       String message = String(value);
       message.trim();
-      if(message == "ON") {digitalWrite(door_pin, HIGH);} //High equals powered
-      if(message == "OFF") {digitalWrite(door_pin, LOW);} //Low equals no power
+      if(message == "ON") {digitalWrite(doorPin, HIGH);} //High equals powered
+      if(message == "OFF") {digitalWrite(doorPin, LOW);} //Low equals no power
       }
     }//while
 */
@@ -189,22 +195,23 @@ void loop() {
 //Set Door position open/closed based on temp
 /////////////////////////////////////////////
     if(doorTemp >= THRESHOLD_OPEN){                       //question is, will the pin setting stay until close threshold is read?
-      digitalWrite(door_pin, LOW);//set pin to high
+      digitalWrite(doorPin, HIGH);//set pin to high
       Serial.println(F("Pin set low - close circuit"));
     } 
     else if(doorTemp <= THRESHOLD_CLOSE){
-      digitalWrite(door_pin, HIGH);//High equals powered
+      digitalWrite(doorPin, LOW);//High equals powered
       Serial.println(F("Pin set high - open circuit"));
     } 
 //    //read actual pin setting high/low and print door position to screen 
-    if (digitalRead(5) == 1){
+    if (digitalRead(doorPin) == 1){
       Serial.println(F("Door is Closed"));
     }
     else {
        Serial.println(F("Door is currently Open"));
     }
     Serial.println(F("Actual Pin Reading = "));
-    Serial.print(digitalRead(5));
+    Serial.print(digitalRead(doorPin));
+    Serial.println();
 
   // To Repeat every (60,000 milSec) 1 Minutes Change delay to change refresh rate
   delay(5000);
@@ -215,6 +222,13 @@ void loop() {
 }//end-Loop
 
 /*************************************************************/
+
+//Interupt State - monitor button
+void pin_ISR(){
+  buttonState = digitalRead(buttonPin);
+  digitalWrite(doorPin, HIGH); //open door
+ }
+
 // Sub-Method used above to connect to adafruit io via MQTT
 void connect() {
 
