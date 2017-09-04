@@ -1,6 +1,12 @@
 /*
   Toggle Button with Interrupt
 
+ Use interupt to monitor pushButton to toggle doorPin on/off
+ Configuration:
+ Button pin is wired to have constant voltage until button pressed grounds it out.
+
+ DoorPin used to trigger relay switch & drive 12V Linear slide motor
+
  */
 
 // constants won't change. They're used here to
@@ -9,7 +15,7 @@ const int buttonPin = 2;     // the number of the pushbutton pin
 const int doorPin =  5;      // the number of the solenoid
 
 // variables
-volatile int buttonState = 0; // 
+volatile int buttonState = 0; // set as volatile because it's used as interupt
 int reading;
 int previous = HIGH;
 
@@ -17,7 +23,7 @@ long wait = 0;
 long debounce = 200;
 
 void setup() {
-  // initialize the ledLED pin as an output:
+  // initialize the doorPin as an output:
   pinMode(doorPin, OUTPUT);
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);
@@ -26,7 +32,7 @@ void setup() {
 }//End Setup
 
 void loop() {
-  // Empty loop
+  // Empty loop will monitor temperature and set doorPin
 }//End Loop
 
 void pin_ISR(){
