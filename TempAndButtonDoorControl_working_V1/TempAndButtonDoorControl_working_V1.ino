@@ -13,8 +13,8 @@
 #include "DHT.h"
 
 //Variables
-#define THRESHOLD_OPEN  76 //Set door open temperature
-#define THRESHOLD_CLOSE 75 //Set door close temperature
+#define THRESHOLD_OPEN  70 //Set door open temperature
+#define THRESHOLD_CLOSE 65 //Set door close temperature
 
 // Configure DHT sensors
 DHT dht(4, DHT11); //blue sensor. On Amico board GPIO 4 is D2
@@ -68,7 +68,7 @@ void loop() {
     Serial.print(F("Holding door OPEN"));
     Serial.println();
 
-    delay(30000); //hold door position for xxMilli seconds before returning to loop and reading temp.
+    delay(5000); //hold door position for xxMilli seconds before returning to loop and reading temp.
 
     //digitalWrite(doorPin, LOW); //reset door pin to Low ** DON'T BELIEVE THIS IS NEEDED
 
@@ -93,6 +93,7 @@ void loop() {
   else {
     Serial.println(F("Door is currently CLOSED"));
   }
-
+  
+  delay(500); //pause between reading
 
 }//end-Loop
